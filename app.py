@@ -198,7 +198,8 @@ with col1:
                     splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
                     docs = splitter.split_documents(documents)
                     
-                    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+                    embeddings = GroqEmbeddings(model="text-embedding-ada-002") 
+# Or use another Groq-supported embedding model like "llama-3.1-8b-instant" if preferred
                     vectorstore = FAISS.from_documents(docs, embeddings)
                     retriever = vectorstore.as_retriever()
                     
