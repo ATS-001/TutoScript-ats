@@ -159,10 +159,12 @@ st.write("---")
 
 # Create main Layout Columns (Left side input/video, Right side Chatbot)
 col1, col2 = st.columns([1, 1], gap="large")
-
 with col1:
     st.subheader("📺 Video Configuration")
     video_url = st.text_input("Enter YouTube Video URL", placeholder="https://www.youtube.com/watch?v=...", key="video_input")
+    
+    # 💡 Smart Fallback UI Element
+    manual_transcript = st.text_area("OR Paste Transcript Manually (Fallback)", placeholder="If automatic fetching is blocked, open the video on YouTube, click 'Show Transcript', and copy-paste the text here...", height=120)
     
     btn_col1, btn_col2 = st.columns([1, 1])
     
@@ -172,11 +174,21 @@ with col1:
         st.button("Clear Conversation", use_container_width=True, on_click=reset_all_states)
 
     if process_clicked:
-        if not video_url:
-            st.error("Please enter a valid YouTube URL first!")
+        if not video_url and not manual_transcript:
+            st.error("Please enter a YouTube URL or paste a transcript manually!")
         else:
-            with st.spinner("Processing video and generating embeddings..."):
-                transcript_text = get_youtube_transcript(video_url)
+            with st.spinner("Processing text and generating embeddings..."):
+                transcript_text = ""
+                
+                # 1. Attempt automatic fetch if URL is given
+                if video_url:
+                    transcript_text = get_youtube_transcript(video_url)
+                
+                # 2. Fall back to manual paste if fetch failed or wasn't attempted
+                if not transcript_text and manual_transcript:
+                    st.info("Using manually provided transcript text.")
+                    transcript_text = manual_transcript
+                    
                 if transcript_text:
                     save_transcript_to_file(transcript_text)
                     loader = TextLoader("transcript.txt", encoding="utf-8")
@@ -201,11 +213,9 @@ with col1:
                         ("human", "{input}"),
                     ])
                     
-                    # Helper to format retrieved document chunks into clean text
                     def format_docs(docs_list):
                         return "\n\n".join(doc.page_content for doc in docs_list)
                     
-                    # Modern Expression Language Pipeline (LCEL) - 100% Core Primitives
                     st.session_state.qa_chain = (
                         {"context": retriever | format_docs, "input": RunnablePassthrough()}
                         | prompt
@@ -213,12 +223,8 @@ with col1:
                         | StrOutputParser()
                     )
                     
-                    st.session_state.current_video = video_url
+                    st.session_state.current_video = video_url if video_url else None
                     st.success("Transcript processed successfully! Ask your questions on the right panel.")
-
-    if st.session_state.current_video:
-        st.write("---")
-        st.video(st.session_state.current_video)
 
 with col2:
     st.subheader("💬 Interactive Assistant")
