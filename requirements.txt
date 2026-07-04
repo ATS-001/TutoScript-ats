@@ -1,5 +1,3 @@
 streamlit
-langchain-groq
-langchain-community
-faiss-cpu
+groq
 youtube-transcript-api
