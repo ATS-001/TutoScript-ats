@@ -1,0 +1,13 @@
+# Virtual Environments
+venv/
+.venv/
+env/
+
+# API keys and text cache dumps
+.env
+transcript.txt
+
+# Python System Cache
+__pycache__/
+*.pyc
+.DS_Store
