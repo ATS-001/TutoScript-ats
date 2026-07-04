@@ -6,5 +6,5 @@ langchain
 langchain-community
 langchain-groq
 langchain-huggingface
-sentence-transformers
+huggingface_hub
 faiss-cpu
