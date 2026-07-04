@@ -66,7 +66,19 @@ if "current_video" not in st.session_state:
 
 def get_youtube_transcript(url):
     try:
-        video_id = YouTube(url).video_id
+        # Robust video ID extraction that doesn't rely on pytube
+        video_id = None
+        if "youtu.be/" in url:
+            video_id = url.split("youtu.be/")[1].split(/[?#]/)[0]
+        elif "v=" in url:
+            video_id = url.split("v=")[1].split("&")[0]
+        elif "embed/" in url:
+            video_id = url.split("embed/")[1].split(/[?#]/)[0]
+        
+        if not video_id:
+            st.error("Could not parse YouTube Video ID from URL.")
+            return ""
+
         api = YouTubeTranscriptApi()
         transcript_data = api.fetch(video_id)
         text = " ".join([item.text for item in transcript_data])
@@ -78,11 +90,11 @@ def get_youtube_transcript(url):
     except VideoUnavailable:
         st.error("This video is unavailable.")
     except CouldNotRetrieveTranscript:
-        st.error("Could not retrieve transcript.")
+        st.error("Could not retrieve transcript. YouTube might be blocking the cloud server's IP. Try a different video link!")
     except Exception as e:
         st.error(f"Unexpected error getting transcript: {e}")
     return ""
-
+    
 def save_transcript_to_file(text, filename="transcript.txt"):
     with open(filename, "w", encoding="utf-8") as f:
         f.write(text)
