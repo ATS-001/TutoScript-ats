@@ -6,5 +6,6 @@ langchain
 langchain-community
 langchain-groq
 langchain-huggingface
+langchain-text-splitters
 huggingface_hub
 faiss-cpu
