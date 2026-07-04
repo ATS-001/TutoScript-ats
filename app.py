@@ -4,7 +4,9 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import CharacterTextSplitter
-from langchain.chains import RetrievalQA
+from langchain_core.prompts import ChatPromptTemplate
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains import create_retrieval_chain
 from langchain_groq import ChatGroq
 from pytube import YouTube
 from youtube_transcript_api import (
@@ -85,7 +87,7 @@ def save_transcript_to_file(text, filename="transcript.txt"):
     with open(filename, "w", encoding="utf-8") as f:
         f.write(text)
 
-# ADDED: This callback safely drops the input field out of memory during state transitions
+# This callback safely drops the input field out of memory during state transitions
 def reset_all_states():
     st.session_state.messages = []
     st.session_state.qa_chain = None
@@ -111,11 +113,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# New Layout Row: System Configuration & Credits Metadata Cards (Referencing layout from image_af06ce.png)
+# Layout Row: System Configuration & Credits Metadata Cards
 meta_col1, meta_col2 = st.columns(2)
 
 with meta_col1:
-    with st.expander("ℹ️ System Configuration", expanded=False):
+    with st.expander("ℹ️ System Configuration", expanded=True):
         st.markdown(
             """
             **Architecture:** Retrieval-Augmented Generation (RAG)  
@@ -126,12 +128,9 @@ with meta_col1:
         )
 
 with meta_col2:
-    with st.expander("🛠️ Credits Registry", expanded=False):
+    with st.expander("🛠️ Credits Registry", expanded=True):
         st.markdown("**Creator / Engineer:** Aaron Thalakkottor Sooraj")
-        
-        # Link button styled cleanly to match your repo layout
         st.link_button("📁 TutoScript", "https://github.com/ATS-001/TutoScript-ats", use_container_width=False)
-        
         st.markdown(
             """
             **Project Baseline:** Day 5 of Projectathon conducted by μLearn LBSITW, AI x DS (1st July 2026)  
@@ -148,13 +147,11 @@ with col1:
     st.subheader("📺 Video Configuration")
     video_url = st.text_input("Enter YouTube Video URL", placeholder="https://www.youtube.com/watch?v=...", key="video_input")
     
-    # Process Button Layout with columns to match Reset option
     btn_col1, btn_col2 = st.columns([1, 1])
     
     with btn_col1:
         process_clicked = st.button("Process Video", use_container_width=True)
     with btn_col2:
-        # Triggers the safe callback function immediately upon user interaction
         st.button("Clear Conversation", use_container_width=True, on_click=reset_all_states)
 
     if process_clicked:
@@ -177,11 +174,22 @@ with col1:
                     
                     groq_llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.2)
                     
-                    st.session_state.qa_chain = RetrievalQA.from_chain_type(llm=groq_llm, retriever=retriever)
+                    # Modern replacement for legacy RetrievalQA using LCEL components
+                    system_prompt = (
+                        "Use the following pieces of retrieved context to answer the question. "
+                        "If you don't know the answer, say that you don't know.\n\n"
+                        "{context}"
+                    )
+                    prompt = ChatPromptTemplate.from_messages([
+                        ("system", system_prompt),
+                        ("human", "{input}"),
+                    ])
+                    question_answer_chain = create_stuff_documents_chain(groq_llm, prompt)
+                    
+                    st.session_state.qa_chain = create_retrieval_chain(retriever, question_answer_chain)
                     st.session_state.current_video = video_url
                     st.success("Transcript processed successfully! Ask your questions on the right panel.")
 
-    # Render YouTube player on the side after processing completes
     if st.session_state.current_video:
         st.write("---")
         st.video(st.session_state.current_video)
@@ -189,27 +197,23 @@ with col1:
 with col2:
     st.subheader("💬 Interactive Assistant")
     
-    # Prompt the user to process a video if the pipeline is empty
     if st.session_state.qa_chain is None:
         st.info("Please enter and process a YouTube video to initialize the chat instance.")
     else:
-        # Display chat logs from session memory
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
 
-        # Native Streamlit Chat Interface input field
         if user_question := st.chat_input("Ask a question about this video..."):
-            # Render user query bubble
             with st.chat_message("user"):
                 st.markdown(user_question)
             st.session_state.messages.append({"role": "user", "content": user_question})
 
-            # Fetch result from Groq model via RAG pipeline
             with st.chat_message("assistant"):
                 with st.spinner("Groq is thinking..."):
-                    response = st.session_state.qa_chain.invoke({"query": user_question})
-                    answer = response["result"]
+                    # Invoke the new chain layout structure
+                    response = st.session_state.qa_chain.invoke({"input": user_question})
+                    answer = response["answer"]
                     st.markdown(answer)
             st.session_state.messages.append({"role": "assistant", "content": answer})
 
