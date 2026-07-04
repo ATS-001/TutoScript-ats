@@ -1,13 +1,5 @@
 streamlit
-python-dotenv
-pytube
-youtube-transcript-api
-langchain
-langchain-community
 langchain-groq
-langchain-huggingface
-langchain-text-splitters
-huggingface_hub
+langchain-community
 faiss-cpu
-sentence-transformers
-torch
+youtube-transcript-api
