@@ -1,5 +1,5 @@
 import streamlit as st
-import youtube_transcript_api
+from youtube_transcript_api import YouTubeTranscriptApi
 from groq import Groq
 import os
 import re
