@@ -7,4 +7,4 @@ langchain-community==0.3.16
 langchain-groq
 langchain-huggingface
 sentence-transformers
-faiss-cpu==1.10.0
+faiss-cpu>=1.14.3
