@@ -5,8 +5,8 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_core.prompts import ChatPromptTemplate
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains import create_retrieval_chain
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
 from langchain_groq import ChatGroq
 from pytube import YouTube
 from youtube_transcript_api import (
@@ -174,19 +174,28 @@ with col1:
                     
                     groq_llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.2)
                     
-                    # Modern replacement for legacy RetrievalQA using LCEL components
                     system_prompt = (
                         "Use the following pieces of retrieved context to answer the question. "
                         "If you don't know the answer, say that you don't know.\n\n"
-                        "{context}"
+                        "Context:\n{context}"
                     )
                     prompt = ChatPromptTemplate.from_messages([
                         ("system", system_prompt),
                         ("human", "{input}"),
                     ])
-                    question_answer_chain = create_stuff_documents_chain(groq_llm, prompt)
                     
-                    st.session_state.qa_chain = create_retrieval_chain(retriever, question_answer_chain)
+                    # Helper to format retrieved document chunks into clean text
+                    def format_docs(docs_list):
+                        return "\n\n".join(doc.page_content for doc in docs_list)
+                    
+                    # Modern Expression Language Pipeline (LCEL) - 100% Core Primitives
+                    st.session_state.qa_chain = (
+                        {"context": retriever | format_docs, "input": RunnablePassthrough()}
+                        | prompt
+                        | groq_llm
+                        | StrOutputParser()
+                    )
+                    
                     st.session_state.current_video = video_url
                     st.success("Transcript processed successfully! Ask your questions on the right panel.")
 
@@ -211,9 +220,8 @@ with col2:
 
             with st.chat_message("assistant"):
                 with st.spinner("Groq is thinking..."):
-                    # Invoke the new chain layout structure
-                    response = st.session_state.qa_chain.invoke({"input": user_question})
-                    answer = response["answer"]
+                    # Direct invocation of the LCEL engine
+                    answer = st.session_state.qa_chain.invoke(user_question)
                     st.markdown(answer)
             st.session_state.messages.append({"role": "assistant", "content": answer})
 
