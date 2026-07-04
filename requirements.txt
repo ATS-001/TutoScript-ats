@@ -2,8 +2,8 @@ streamlit
 python-dotenv
 pytube
 youtube-transcript-api
-langchain==0.3.17
-langchain-community==0.3.16
+langchain>=0.3.18
+langchain-community>=0.3.17
 langchain-groq
 langchain-huggingface
 sentence-transformers
