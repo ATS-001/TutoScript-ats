@@ -64,17 +64,22 @@ if "qa_chain" not in st.session_state:
 if "current_video" not in st.session_state:
     st.session_state.current_video = None
 
+from urllib.parse import urlparse, parse_qs
+
 def get_youtube_transcript(url):
     try:
-        # Robust video ID extraction that doesn't rely on pytube
+        # Perfectly clean Python method to extract video ID without regex or breaking syntax
         video_id = None
-        if "youtu.be/" in url:
-            video_id = url.split("youtu.be/")[1].split(/[?#]/)[0]
-        elif "v=" in url:
-            video_id = url.split("v=")[1].split("&")[0]
-        elif "embed/" in url:
-            video_id = url.split("embed/")[1].split(/[?#]/)[0]
+        parsed_url = urlparse(url)
         
+        if parsed_url.hostname == 'youtu.be':
+            video_id = parsed_url.path[1:]
+        elif parsed_url.hostname in ('www.youtube.com', 'youtube.com'):
+            if parsed_url.path == '/watch':
+                video_id = parse_qs(parsed_url.query).get('v', [None])[0]
+            elif parsed_url.path.startswith(('/embed/', '/v/')):
+                video_id = parsed_url.path.split('/')[2]
+                
         if not video_id:
             st.error("Could not parse YouTube Video ID from URL.")
             return ""
