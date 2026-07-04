@@ -117,7 +117,7 @@ st.markdown(
 meta_col1, meta_col2 = st.columns(2)
 
 with meta_col1:
-    with st.expander("ℹ️ System Configuration", expanded=True):
+    with st.expander("ℹ️ System Configuration", expanded=False):
         st.markdown(
             """
             **Architecture:** Retrieval-Augmented Generation (RAG)  
@@ -128,7 +128,7 @@ with meta_col1:
         )
 
 with meta_col2:
-    with st.expander("🛠️ Credits Registry", expanded=True):
+    with st.expander("🛠️ Credits Registry", expanded=False):
         st.markdown("**Creator / Engineer:** Aaron Thalakkottor Sooraj")
         st.link_button("📁 TutoScript", "https://github.com/ATS-001/TutoScript-ats", use_container_width=False)
         st.markdown(
