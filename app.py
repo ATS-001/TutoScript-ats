@@ -3,23 +3,15 @@ import yt_dlp
 from groq import Groq
 import os
 
-# Use a simple, robust function to fetch transcript
-def get_transcript(video_url):
-    ydl_opts = {
-        'writesubtitles': True,
-        'writeautomaticsub': True,
-        'skip_download': True,
-        'quiet': True,
-    }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(video_url, download=False)
-        # Prefer manual subtitles, fallback to auto-generated
-        subs = info.get('subtitles') or info.get('automatic_captions')
-        if 'en' in subs:
-            # Logic to extract text from the subtitle format
-            return "Transcript text retrieved..." 
-    return None
-
-# The rest of your Streamlit UI logic remains clean and simple
 st.title("YouTube ATS Analyzer")
-# ... (rest of your UI code)
+
+# Force these to show up immediately
+video_url = st.text_input("Paste YouTube Video URL:")
+user_question = st.text_input("Ask a question about this video:")
+
+if st.button("Analyze"):
+    if video_url:
+        st.write(f"Analyzing: {video_url}")
+        # Your extraction/Groq logic goes here
+    else:
+        st.warning("Please paste a URL first.")
