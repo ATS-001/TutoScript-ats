@@ -30,7 +30,7 @@ if video_url:
     if video_id:
         try:
             with st.spinner("Fetching transcript..."):
-                transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
+                transcript_list = youtube_transcript_api.YouTubeTranscriptApi.get_transcript(video_id)
                 transcript_text = " ".join([item['text'] for item in transcript_list])
             st.success("Transcript fetched successfully!")
             
