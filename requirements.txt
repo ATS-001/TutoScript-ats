@@ -2,9 +2,9 @@ streamlit
 python-dotenv
 pytube
 youtube-transcript-api
-langchain>=0.3.18
-langchain-community>=0.3.17
+langchain
+langchain-community
 langchain-groq
 langchain-huggingface
 sentence-transformers
-faiss-cpu>=1.14.3
+faiss-cpu
