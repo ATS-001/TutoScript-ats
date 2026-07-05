@@ -1,3 +1,0 @@
-streamlit
-yt-dlp
-groq
