@@ -2,7 +2,7 @@
 
 An efficient, modular Retrieval-Augmented Generation (RAG) dashboard designed to parse YouTube video transcripts, index text segments into a local vector storage unit, and generate real-time contextual question-answering streams alongside synchronized video playback.
 
-🚀 **Live Demo:** [Launch App on Streamlit Community Cloud](https://tutoscript-ats.streamlit.app/)
+> 💻 **Local Deployment Model:** This application is designed to be downloaded and run locally on your machine via the terminal for an isolated, high-performance experience.
 
 ---
 
